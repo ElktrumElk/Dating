@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:untitled/global/chatController/chat_controller.dart';
+import 'package:untitled/global/chats/add_message.dart';
+import 'package:untitled/global/chats/auto_sort_contact.dart';
 import 'package:untitled/global/chats/user_chats.dart';
 import 'package:untitled/main.dart';
 import 'package:untitled/pages/messagePanel/chat_lists.dart';
@@ -28,7 +30,9 @@ class _MessageScreenState extends State<MessageScreen> {
       valueListenable: selectedContactIndex,
       builder: (context, contactIndex, _) {
         // Fallback protection in case index out of bounds
-        final safeIndex = contactIndex < UserChats.contacts.length ? contactIndex : 0;
+        final safeIndex = contactIndex < UserChats.contacts.length
+            ? contactIndex
+            : 0;
         final contact = UserChats.contacts[safeIndex];
 
         return Scaffold(
@@ -140,10 +144,13 @@ class _MessageScreenState extends State<MessageScreen> {
                 IconButton.filled(
                   onPressed: () {
                     if (_messageController.text.trim().isNotEmpty) {
-                      // TODO: Add sending operational method here
-                      // chatController.sendMessage(safeIndex, _messageController.text);
-                      print('Sending message to ${contact.name}: ${_messageController.text}');
+                      setState(() {
+                        AddMessage().addMessage(
+                          Message(text: _messageController.text),
+                        );
+                      });
                       _messageController.clear();
+                      AutoSortContact.instance.sort(contact.name);
                     }
                   },
                   icon: const Icon(Icons.send_rounded),

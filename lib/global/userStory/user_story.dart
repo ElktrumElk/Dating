@@ -10,7 +10,6 @@ class Story {
   const Story({required this.username, required this.stories});
 }
 
-
 class HandleStory with ChangeNotifier {
   late Function clearStatus;
 
@@ -30,48 +29,109 @@ class HandleStory with ChangeNotifier {
   final Stopwatch _stopwatch = Stopwatch();
 
   void start() {
+    UserStoryVariable.timer?.cancel();
     _stopwatch.start();
-    UserStoryVariable.timer = Timer.periodic(Duration(milliseconds: 100), (
-        timer,
-        ) {
-      if (UserStoryVariable.progressValue >= 1.0) {
-        if (UserStoryVariable.currentIndexStatus >= _stories.length) {
-          UserStoryVariable.timer.cancel();
-          timer.cancel();
-          _stopwatch.stop();
-          _stopwatch.reset();
-          clearStatus.call();
-          return;
-        }
 
-        if (UserStoryVariable.innerIndex <
-            _stories[UserStoryVariable.currentIndexStatus].stories.length - 1) {
-          UserStoryVariable.innerIndex += 1;
-          UserStoryVariable.progressValue = 0.0;
-        } else {
-          UserStoryVariable.innerIndex = 0;
-          UserStoryVariable.progressValue = 0.0;
-          UserStoryVariable.currentIndexStatus += 1;
-        }
-        if (UserStoryVariable.currentIndexStatus >= _stories.length) {
-          timer.cancel();
-          _stopwatch.stop();
-          _stopwatch.reset();
-          clearStatus.call();
-          return;
-        }
-        _stopwatch.reset();
-        _stopwatch.start();
-        notifyListeners();
-      } else {
-        UserStoryVariable.progressValue += 0.02;
-        notifyListeners();
+    UserStoryVariable.timer = Timer.periodic(Duration(milliseconds: 100), (
+      timer,
+    ) {
+      if (!UserStoryVariable.isStatusLoaded) {
+        return;
       }
-    });
+      // Check if progressbar has complete
+      if (UserStoryVariable.progressValue >= 1.0) {
+          // check if all the status has been looped through
+          if (UserStoryVariable.currentIndexStatus >= _stories.length) {
+            UserStoryVariable.timer?.cancel();
+            timer.cancel();
+            _stopwatch.stop();
+            _stopwatch.reset();
+            clearStatus.call();
+            UserStoryVariable.isStatusLoaded = false;
+
+            return;
+          }
+          // Checked if the specific story has been looped through
+          if (UserStoryVariable.innerIndex <
+              _stories[UserStoryVariable.currentIndexStatus].stories.length -
+                  1) {
+            UserStoryVariable.innerIndex += 1;
+            UserStoryVariable.progressValue = 0.0;
+            UserStoryVariable.isStatusLoaded = false;
+          } else {
+            UserStoryVariable.innerIndex = 0;
+            UserStoryVariable.progressValue = 0.0;
+            UserStoryVariable.currentIndexStatus += 1;
+            UserStoryVariable.isStatusLoaded = false;
+          }
+          // Double check if all status has been completed to prevent crash
+          if (UserStoryVariable.currentIndexStatus >= _stories.length) {
+            timer.cancel();
+            _stopwatch.stop();
+            _stopwatch.reset();
+            clearStatus.call();
+            UserStoryVariable.isStatusLoaded = false;
+            return;
+          }
+          _stopwatch.reset();
+          _stopwatch.start();
+          notifyListeners();
+        } else {
+          UserStoryVariable.progressValue += 0.02;
+          notifyListeners();
+        }
+      });
   }
 
   void pause() {
     _stopwatch.stop();
-    UserStoryVariable.timer.cancel();
+    UserStoryVariable.timer?.cancel();
+  }
+
+  void next() {
+    UserStoryVariable.timer?.cancel();
+    UserStoryVariable.progressValue = 0.0;
+
+    if (UserStoryVariable.innerIndex <
+        _stories[UserStoryVariable.currentIndexStatus].stories.length - 1) {
+      UserStoryVariable.innerIndex += 1;
+      notifyListeners();
+      start();
+    } else {
+      UserStoryVariable.innerIndex = 0;
+      UserStoryVariable.currentIndexStatus += 1;
+
+      if (UserStoryVariable.currentIndexStatus >= _stories.length) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          clearStatus.call();
+        });
+        return;
+      }
+      notifyListeners();
+      start();
+    }
+  }
+
+  void previous() {
+    UserStoryVariable.timer?.cancel();
+    UserStoryVariable.progressValue = 0.0;
+
+    if (UserStoryVariable.innerIndex > 0) {
+      UserStoryVariable.innerIndex -= 1;
+      notifyListeners();
+      start();
+    } else {
+      if (UserStoryVariable.currentIndexStatus > 0) {
+        UserStoryVariable.currentIndexStatus -= 1;
+        UserStoryVariable.innerIndex =
+            _stories[UserStoryVariable.currentIndexStatus].stories.length - 1;
+        notifyListeners();
+        start();
+      } else {
+        UserStoryVariable.innerIndex = 0;
+        notifyListeners();
+        start();
+      }
+    }
   }
 }

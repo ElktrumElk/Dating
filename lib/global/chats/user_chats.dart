@@ -35,6 +35,7 @@ class Contact {
 class UserChats {
   static List<Contact> contacts = [
     Contact(
+
       name: 'Alice Gborie',
       unreadCount: 1,
       messages: [
@@ -65,4 +66,6 @@ class UserChats {
       ],
     ),
   ];
+
+
 }

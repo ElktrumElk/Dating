@@ -69,7 +69,7 @@ class _ChatListsScreen extends State<ChatLists> {
                     maxWidth: MediaQuery.of(context).size.width * 0.7,
                   ),
                   decoration: BoxDecoration(
-                    color: isSender ? const Color(0xFFFFE1BB) : const Color(0xFF815D4E),
+                    color: isSender ? const Color(0xFFE10087) : const Color(0xFF815D4E),
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(12),
                       topRight: const Radius.circular(12),
@@ -92,7 +92,7 @@ class _ChatListsScreen extends State<ChatLists> {
                         Text(
                           message.text,
                           style: TextStyle(
-                            color: isSender ? Colors.black87 : Colors.white,
+                            color: isSender ? Colors.white: Colors.white,
                             fontSize: 15,
                           ),
                         ),
@@ -103,7 +103,7 @@ class _ChatListsScreen extends State<ChatLists> {
                             Text(
                               message.sentAt,
                               style: TextStyle(
-                                color: isSender ? Colors.black54 : Colors.white70,
+                                color: isSender ? Colors.grey : Colors.white70,
                                 fontSize: 11,
                               ),
                             ),

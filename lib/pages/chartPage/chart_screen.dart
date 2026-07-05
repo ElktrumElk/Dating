@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:untitled/global/chats/add_message.dart';
 
 import 'package:untitled/global/chats/auto_sort_contact.dart';
 import 'package:untitled/global/chats/user_chats.dart';
@@ -20,7 +21,7 @@ class _ChartScreenState extends State<ChartScreen> {
 
   static final List<Story> _storyItems = UserStory.userStories;
 
-  final AutoSortContact _sortContact = AutoSortContact();
+  final AutoSortContact _sortContact = AutoSortContact.instance;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -220,7 +221,7 @@ class _ChartScreenState extends State<ChartScreen> {
                           onTap: () {
                             selectedContactIndex.value = index;
                             isBottomNavigation.value = false;
-
+                            AddMessage.currentChatUser = contact.name;
                             chatSubPageNotifier.value = 1;
                           },
                         ),

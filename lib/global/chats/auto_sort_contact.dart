@@ -2,6 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:untitled/global/chats/user_chats.dart';
 
 class AutoSortContact with ChangeNotifier {
+
+  AutoSortContact._();
+  static final instance = AutoSortContact._();
+
   List<Contact> _contacts = [];
   List<Contact> _sortedContact = [];
 
