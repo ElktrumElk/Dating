@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:untitled/global/userStory/story.dart';
 import 'package:untitled/global/variables/global_variables.dart';
 
 class Story {
@@ -9,22 +10,6 @@ class Story {
   const Story({required this.username, required this.stories});
 }
 
-class UserStory {
-  static List<Story> userStories = [
-    Story(
-      username: 'alice gborie',
-      stories: [Colors.yellow, Colors.red, Colors.white],
-    ),
-    Story(
-      username: 'william evans',
-      stories: [Colors.purple, Colors.lightGreen, Colors.orange, Colors.green],
-    ),
-    Story(
-      username: 'sarah johnson',
-      stories: [Colors.yellow, Colors.red, Colors.brown],
-    ),
-  ];
-}
 
 class HandleStory with ChangeNotifier {
   late Function clearStatus;
@@ -42,19 +27,20 @@ class HandleStory with ChangeNotifier {
   }
 
   static final List<Story> _stories = UserStory.userStories;
+  final Stopwatch _stopwatch = Stopwatch();
 
-  // curr = 3
-  // inner = 0
   void start() {
+    _stopwatch.start();
     UserStoryVariable.timer = Timer.periodic(Duration(milliseconds: 100), (
-      timer,
-    ) {
+        timer,
+        ) {
       if (UserStoryVariable.progressValue >= 1.0) {
         if (UserStoryVariable.currentIndexStatus >= _stories.length) {
           UserStoryVariable.timer.cancel();
           timer.cancel();
+          _stopwatch.stop();
+          _stopwatch.reset();
           clearStatus.call();
-
           return;
         }
 
@@ -69,11 +55,13 @@ class HandleStory with ChangeNotifier {
         }
         if (UserStoryVariable.currentIndexStatus >= _stories.length) {
           timer.cancel();
-
+          _stopwatch.stop();
+          _stopwatch.reset();
           clearStatus.call();
-
           return;
         }
+        _stopwatch.reset();
+        _stopwatch.start();
         notifyListeners();
       } else {
         UserStoryVariable.progressValue += 0.02;
@@ -83,6 +71,7 @@ class HandleStory with ChangeNotifier {
   }
 
   void pause() {
-
+    _stopwatch.stop();
+    UserStoryVariable.timer.cancel();
   }
 }
