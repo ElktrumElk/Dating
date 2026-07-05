@@ -141,36 +141,43 @@ class _StatusViewState extends State<StatusView> {
                         maxScale: 4.0,
                         minScale: 1.0,
                         clipBehavior: Clip.none,
-                        child: Image.network(
-                          UserStory
-                              .userStories[UserStoryVariable.currentIndexStatus]
-                              .stories[UserStoryVariable.innerIndex],
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) {
-                              UserStoryVariable.isStatusLoaded = true;
-                              HandleStory().start();
-                              return child;
-                            }
-
-
-                            return Center(
-                              child: SizedBox(
-                                height: 30,
-                                width: 30,
-                                child: CircularProgressIndicator(
-                                  color: Colors.pinkAccent,
-                                ),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 600,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.network(
+                                UserStory
+                                    .userStories[UserStoryVariable.currentIndexStatus]
+                                    .stories[UserStoryVariable.innerIndex],
+                                fit: BoxFit.cover,
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) {
+                                    UserStoryVariable.isStatusLoaded = true;
+                                    HandleStory().start();
+                                  }
+                                  return child ?? const SizedBox();
+                                },
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(
+                                    Icons.broken_image_outlined,
+                                    color: Colors.pink,
+                                  );
+                                },
                               ),
-                            );
-                          },
-
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.broken_image_outlined,
-                              color: Colors.pink,
-                            );
-                          },
+                              if (!UserStoryVariable.isStatusLoaded)
+                                Center(
+                                  child: SizedBox(
+                                    height: 30,
+                                    width: 30,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.pinkAccent,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
