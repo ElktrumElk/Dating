@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:untitled/global/chatController/chat_controller.dart';
 import 'package:untitled/global/chats/add_message.dart';
 import 'package:untitled/global/chats/auto_sort_contact.dart';
 import 'package:untitled/global/chats/user_chats.dart';
 import 'package:untitled/main.dart';
 import 'package:untitled/pages/messagePanel/chat_lists.dart';
+import 'package:untitled/pages/messagePanel/userReplyPanelModifier/user_reply.dart';
 
 class MessageScreen extends StatefulWidget {
   const MessageScreen({super.key});
@@ -24,16 +24,19 @@ class _MessageScreenState extends State<MessageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Listens directly to selectedContactIndex updates so that tapping a
-    // different user immediately switches the headers and messages shown.
-    return ValueListenableBuilder<int>(
-      valueListenable: selectedContactIndex,
-      builder: (context, contactIndex, _) {
-        // Fallback protection in case index out of bounds
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        selectedContactIndex,
+        replyTriggerNotifier,
+        _messageController,
+      ]),
+      builder: (context, _) {
+        final contactIndex = selectedContactIndex.value;
         final safeIndex = contactIndex < UserChats.contacts.length
             ? contactIndex
             : 0;
         final contact = UserChats.contacts[safeIndex];
+        final reply = userReplyPanel[contact.name];
 
         return Scaffold(
           resizeToAvoidBottomInset: true,
@@ -43,15 +46,13 @@ class _MessageScreenState extends State<MessageScreen> {
             elevation: 0,
             leading: IconButton.filled(
               onPressed: () {
-                // Route smoothly back to the ChartScreen list view
                 chatSubPageNotifier.value = 0;
-                // Instantly re-show your main global bottom navigation bar
                 isBottomNavigation.value = true;
               },
               icon: const Icon(Icons.arrow_back_rounded),
-              color: Colors.white,
+              color: Colors.black,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent,
+                backgroundColor: Colors.grey[200],
                 elevation: 10,
               ),
             ),
@@ -62,10 +63,8 @@ class _MessageScreenState extends State<MessageScreen> {
                   height: 45,
                   width: 45,
                   decoration: BoxDecoration(
-                    color: Colors.pink,
+                    color: Color(0xFFE10087),
                     borderRadius: BorderRadius.circular(100),
-                    // If your contact object contains a profile image URL, apply it here:
-                    // image: DecorationImage(image: AssetImage(contact.profilePath)),
                   ),
                 ),
                 contentPadding: const EdgeInsets.all(1),
@@ -88,9 +87,9 @@ class _MessageScreenState extends State<MessageScreen> {
               IconButton.filled(
                 onPressed: () {},
                 icon: const Icon(Icons.call),
-                color: Colors.white,
+                color: Colors.black,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
+                  backgroundColor: Colors.grey[200],
                   elevation: 10,
                 ),
               ),
@@ -98,70 +97,164 @@ class _MessageScreenState extends State<MessageScreen> {
               IconButton.filled(
                 onPressed: () {},
                 icon: const Icon(Icons.video_call),
-                color: Colors.white,
+                color: Colors.black,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
+                  backgroundColor: Colors.grey[200],
                   elevation: 10,
                 ),
               ),
               const SizedBox(width: 10),
             ],
           ),
-          body: ChatLists(messages: contact.messages),
-          bottomSheet: Container(
-            color: Colors.white,
-            padding: EdgeInsets.only(
-              left: 12,
-              right: 12,
-              top: 8,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 12,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: TextField(
-                      controller: _messageController,
-                      maxLines: null,
-                      keyboardType: TextInputType.multiline,
-                      decoration: const InputDecoration(
-                        hintText: 'Type a message...',
-                        hintStyle: TextStyle(color: Colors.grey),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+          body: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Expanded(child: ChatLists(messages: contact.messages)),
+
+              Container(
+                color: Colors.white,
+                padding: EdgeInsets.only(
+                  left: 12,
+                  right: 12,
+                  top: 8,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 12,
+                ),
+                child: Column(
+                  children: [
+                    // ===============================================================
+                    if (reply?.isReply == true)
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            left: BorderSide(color: Colors.pink, width: 3),
+                          ),
                         ),
-                        border: InputBorder.none,
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            left: 15,
+                            right: 20,
+                            top: 5,
+                            bottom: 5,
+                          ),
+                          child: SizedBox(
+                            width: double.maxFinite,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      reply?.username ?? '',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight(600),
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      reply?.messageReplyTo ?? '',
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                                // ========Column===========================
+                                const Spacer(),
+                                IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      reply?.isReply = false;
+                                    });
+                                  },
+                                  icon: Icon(Icons.close),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
+
+                    // Text Field ====================================
+                    //
+                    //================================================
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: TextField(
+                              controller: _messageController,
+                              maxLines: null,
+                              keyboardType: TextInputType.multiline,
+                              decoration: const InputDecoration(
+                                hintText: 'Type a message...',
+                                hintStyle: TextStyle(color: Colors.grey),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                        ),
+                        AnimatedCrossFade(
+                          duration: const Duration(milliseconds: 200),
+                          crossFadeState: _messageController.text.isEmpty
+                              ? CrossFadeState.showFirst
+                              : CrossFadeState.showSecond,
+                          firstChild: IconButton.filled(
+                            onPressed: () {},
+                            icon: const Icon(Icons.mic),
+
+                            color: Colors.white,
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.pinkAccent,
+                              padding: const EdgeInsets.all(12),
+                            ),
+                          ),
+                          secondChild: const SizedBox.shrink(),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton.filled(
+                          onPressed: () {
+                            if (_messageController.text.trim().isNotEmpty) {
+                              setState(() {
+                                AddMessage().addMessage(
+                                  Message(
+                                    text: _messageController.text,
+                                    isSender: true,
+                                    replyToUsername: reply?.username,
+                                    replyToText: reply?.messageReplyTo,
+                                  ),
+                                );
+                              });
+                              reply?.clear();
+                              replyTriggerNotifier.value++;
+                              selectedContactIndex.value = 0;
+                              _messageController.clear();
+                              AutoSortContact.instance.sort(contact.name);
+                            }
+                          },
+                          icon: const Icon(Icons.send_rounded),
+                          color: Colors.white,
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.pinkAccent,
+                            padding: const EdgeInsets.all(12),
+                          ),
+                        ),
+
+                      ],
                     ),
-                  ),
+                    // =====================ROW===============================
+                  ],
                 ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  onPressed: () {
-                    if (_messageController.text.trim().isNotEmpty) {
-                      setState(() {
-                        AddMessage().addMessage(
-                          Message(text: _messageController.text),
-                        );
-                      });
-                      _messageController.clear();
-                      AutoSortContact.instance.sort(contact.name);
-                    }
-                  },
-                  icon: const Icon(Icons.send_rounded),
-                  color: Colors.white,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.pinkAccent,
-                    padding: const EdgeInsets.all(12),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },

@@ -5,12 +5,16 @@ class Message {
   final String sentAt;
   final bool isSender;
   final MessageStatus status;
+  final String? replyToUsername;
+  final String? replyToText;
 
   Message({
     required this.text,
     this.isSender = false,
     this.status = MessageStatus.sent,
     String? sentAt,
+    this.replyToUsername,
+    this.replyToText,
   }) : sentAt = sentAt ??
             '${DateTime.now().hour}:${DateTime.now().minute} ${DateTime.now().hour > 12 ? "PM" : "AM"}';
 }

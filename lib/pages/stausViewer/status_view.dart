@@ -53,6 +53,8 @@ class _StatusViewState extends State<StatusView> {
         onVerticalDragEnd: (e) {
           if (mounted) {
             Navigator.pop(context);
+            UserStoryVariable.timer?.cancel();
+            UserStoryVariable.progressValue = 0.0;
           }
           isDrag = false;
         },

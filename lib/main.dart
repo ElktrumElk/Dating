@@ -18,6 +18,7 @@ ValueNotifier<int> selectedContactIndex = ValueNotifier<int>(0);
 // Dedicated notifier to handle inner routing between ChartScreen (0) and MessageScreen (1)
 ValueNotifier<int> chatSubPageNotifier = ValueNotifier<int>(0);
 ValueNotifier<bool> isBottomNavigation = ValueNotifier<bool>(true);
+ValueNotifier<int> replyTriggerNotifier = ValueNotifier<int>(0);
 
 final PageController pageController = PageController(initialPage: 0);
 

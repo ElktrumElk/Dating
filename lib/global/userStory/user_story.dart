@@ -98,15 +98,12 @@ class HandleStory with ChangeNotifier {
       notifyListeners();
       start();
     } else {
-      UserStoryVariable.innerIndex = 0;
-      UserStoryVariable.currentIndexStatus += 1;
-
-      if (UserStoryVariable.currentIndexStatus >= _stories.length) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          clearStatus.call();
-        });
+      if (UserStoryVariable.currentIndexStatus >= _stories.length - 1) {
+        clearStatus.call();
         return;
       }
+      UserStoryVariable.innerIndex = 0;
+      UserStoryVariable.currentIndexStatus += 1;
       notifyListeners();
       start();
     }
